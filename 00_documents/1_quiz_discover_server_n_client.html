@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quiz</title>
+  <style>
+    * {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell,
+        "Open Sans", "Helvetica Neue", sans-serif;
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+
+    main {
+      padding-top: 48px;
+    }
+
+    :root {
+      --large-device-width: 850px;
+      --primary-color: #0f172a;
+      --secondary-color: #020617;
+      --primary-text-color: #c7d1dd;
+      --secondary-text-color: #061602;
+      --success-background: hsl(159, 82%, 24%);
+      --success-foreground: hsl(164, 86%, 16%);
+      --success: hsl(160, 84%, 39%);
+      --danger: #ef4444;
+      --warning: #f59e0b;
+      --info-background: hsl(218, 81%, 8%);
+      --info-foreground: hsl(217, 91%, 85%);
+      --border-color: #d1d7dc;
+      --check-box-size: 20px;
+      /* control the size */
+      --check-box-color: var(--info-foreground);
+      /* the active color */
+    }
+
+    body {
+      position: relative;
+      background-color: #020617;
+      color: var(--primary-text-color);
+    }
+
+    #score-stats-container {
+      position: fixed;
+      z-index: 10;
+      top: 0;
+      height: 40px;
+      width: 100%;
+      background-color: var(--info-background);
+
+      padding: 0px 16px;
+      color: var(--info-foreground);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    #quiz-container {
+      border-radius: 8px;
+      display: flex;
+      gap: 16px;
+      flex-direction: column;
+    }
+
+    /* === Base Styles for both Radio and Checkbox === */
+    input[type="radio"],
+    input[type="checkbox"] {
+        height: var(--check-box-size);
+        aspect-ratio: 1;
+        border: calc(var(--check-box-size) / 8) solid #939393;
+        padding: calc(var(--check-box-size) / 8);
+        background: radial-gradient(farthest-side, var(--check-box-color) 94%, #0000) 50%/0 0 no-repeat content-box;
+        outline-offset: calc(var(--check-box-size) / 10);
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        cursor: pointer;
+        font-size: inherit;
+        transition: 0.3s;
+    }
+
+    input[type="radio"]:checked,
+    input[type="checkbox"]:checked {
+        border-color: var(--check-box-color);
+        background-size: 100% 100%;
+    }
+
+    input[type="radio"]:disabled,
+    input[type="checkbox"]:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* === Specific Styles === */
+    input[type="radio"] {
+      border-radius: 50%; /* Makes it a circle */
+    }
+    
+    input[type="checkbox"] {
+        border-radius: 4px; /* Makes it a square */
+    }
+    
+    label {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 4px;
+    }
+
+    @media (max-width: 767px) {
+
+      input[type="radio"],
+      input[type="checkbox"],
+      label {
+        cursor: default;
+      }
+
+      #quiz-container {
+        margin-left: 8px;
+        margin-right: 8px;
+      }
+    }
+
+    /* PC (Desktop devices) */
+    @media (min-width: 768px) {
+      body {
+        display: flex;
+        justify-content: center;
+      }
+
+      main {
+        max-width: var(--large-device-width);
+      }
+
+      #score-stats-container {
+        max-width: var(--large-device-width);
+      }
+
+      dialog {
+        max-width: var(--large-device-width);
+      }
+    }
+
+    @media print {
+        input[type="radio"],
+        input[type="checkbox"] {
+            background: none !important;
+            border-color: #939393 !important;
+        }
+
+        input[type="radio"]:checked,
+        input[type="checkbox"]:checked {
+            border-color: #939393 !important;
+        }
+    }
+
+    .question-lable {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    button {
+      -webkit-tap-highlight-color: transparent;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      user-select: none;
+      outline: none;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+
+    .button {
+      background-color: var(--success-background);
+      border: none;
+      color: #f4f5f7;
+      opacity: 0.8;
+      font-size: 18px;
+      flex-grow: 1;
+      padding: 8px 16px;
+      border-radius: 8px;
+    }
+
+    .button:hover {
+      opacity: 1;
+    }
+
+    .button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .explanation-btn {
+      border: none;
+      color: var(--success);
+      background-color: transparent;
+    }
+
+    .single-question-container {
+      background-color: var(--primary-color);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 16px;
+      border-radius: 8px;
+    }
+
+    #modal-content {
+      padding: 16px;
+      line-height: 24px;
+    }
+
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    dialog {
+      position: fixed;
+      border: 1px solid var(--border-color);
+      background-color: var(--primary-color);
+      color: rgb(240, 241, 248);
+      padding: 16px;
+      border-radius: 8px;
+      width: 80vw;
+      max-height: 80vh;
+      overflow: auto;
+      top: 50%;
+      left: 50%;
+      transform: translateX(-50%) translateY(-50%);
+    }
+
+    #close-modal-btn {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      padding: 2px 8px;
+      border-radius: 2px;
+      border: none;
+      background-color: var(--danger);
+    }
+
+    .correct-answer > label {
+      border: 2px solid var(--success);
+      width: 100%;
+    }
+
+    .incorrect-answer > label {
+      border: 2px solid var(--danger);
+      width: 100%;
+    }
+
+    .options-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    #quiz-meta-container {
+      border-radius: 8px;
+      background-color: var(--primary-color);
+      margin-bottom: 12px;
+      padding: 8px;
+    }
+
+    #quiz-title {
+      text-align: center;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    #quiz-description {
+      line-height: 1.5;
+      padding: 2px 6px;
+    }
+  </style>
+</head>
+
+<body onload="main()">
+  <main>
+    <section id="quiz-meta-container">
+      <h1 id="quiz-title"></h1>
+      <p id="quiz-description"></p>
+    </section>
+    <section id="score-stats-container">
+      <div id="score-card">
+        Score: <span id="current-score">999</span> of
+        <span id="pass-percent">999%</span>
+      </div>
+      <div>Correct: <span id="correct-answers">999</span></div>
+      <div>Incorrect: <span id="wrong-answers">999</span></div>
+    </section>
+
+    <section id="quiz-container"></section>
+
+    <dialog id="modal" class="modal-container">
+      <div id="modal-content">
+        <p id="modal-text"></p>
+      </div>
+    </dialog>
+  </main>
+
+  <script>
+    const quizData = {"pass_percent": null, "questions": [{"_class": "assessment", "id": 60840734, "assessment_type": "multiple-choice", "prompt": {"question": "<p>Discovery Server l\u00e0 g\u00ec trong ki\u1ebfn tr\u00fac d\u1ef1a tr\u00ean Eureka?</p>", "relatedLectureIds": ["37834468"], "feedbacks": ["Discovery Server, trong tr\u01b0\u1eddng h\u1ee3p n\u00e0y Eureka Server, l\u00e0 m\u1ed9t m\u00e1y ch\u1ee7 \u0111\u0103ng k\u00fd v\u00e0 l\u01b0u tr\u1eef th\u00f4ng tin v\u1ec1 c\u00e1c d\u1ecbch v\u1ee5 c\u00f3 s\u1eb5n trong m\u1ea1ng. N\u00f3 cho ph\u00e9p c\u00e1c d\u1ecbch v\u1ee5 kh\u00e1c \u0111\u0103ng k\u00fd v\u1edbi n\u00f3 v\u00e0 cung c\u1ea5p th\u00f4ng tin chi ti\u1ebft v\u1ec1 ch\u00ednh m\u00ecnh \u0111\u1ec3 c\u00f3 th\u1ec3 \u0111\u01b0\u1ee3c kh\u00e1m ph\u00e1 b\u1edfi c\u00e1c d\u1ecbch v\u1ee5 kh\u00e1c.", "", ""], "answers": ["<p>L\u00e0 m\u1ed9t m\u00e1y ch\u1ee7 \u0111\u0103ng k\u00fd v\u00e0 l\u01b0u tr\u1eef th\u00f4ng tin v\u1ec1 c\u00e1c d\u1ecbch v\u1ee5 kh\u00e1m ph\u00e1.</p>", "<p>L\u00e0 m\u1ed9t th\u01b0 vi\u1ec7n m\u00e3 ngu\u1ed3n m\u1edf \u0111\u1ec3 ph\u00e1t hi\u1ec7n c\u00e1c d\u1ecbch v\u1ee5 m\u1edbi.</p>", "<p>L\u00e0 m\u1ed9t c\u00f4ng c\u1ee5 \u0111\u1ec3 qu\u1ea3n l\u00fd v\u00e0 gi\u00e1m s\u00e1t ho\u1ea1t \u0111\u1ed9ng c\u1ee7a c\u00e1c d\u1ecbch v\u1ee5.</p>"]}, "correct_response": ["a"], "section": "", "question_plain": "Discovery Server l\u00e0 g\u00ec trong ki\u1ebfn tr\u00fac d\u1ef1a tr\u00ean Eureka?", "related_lectures": []}, {"_class": "assessment", "id": 60840740, "assessment_type": "multiple-choice", "prompt": {"question": "<p>Eureka l\u00e0 m\u1ed9t c\u00f4ng ngh\u1ec7 ph\u00e1t tri\u1ec3n b\u1edfi c\u00f4ng ty n\u00e0o? </p>", "relatedLectureIds": ["37834468"], "feedbacks": ["Eureka l\u00e0 m\u1ed9t c\u00f4ng ngh\u1ec7 ph\u00e1t tri\u1ec3n b\u1edfi Netflix. N\u00f3 \u0111\u01b0\u1ee3c s\u1eed d\u1ee5ng l\u00e0m th\u00e0nh ph\u1ea7n quan tr\u1ecdng trong h\u1ec7 th\u1ed1ng microservices c\u1ee7a Netflix \u0111\u1ec3 qu\u1ea3n l\u00fd v\u00e0 kh\u00e1m ph\u00e1 c\u00e1c d\u1ecbch v\u1ee5.", "", ""], "answers": ["<p>Netflix</p>", "<p>Amazon</p>", "<p>Google</p>"]}, "correct_response": ["a"], "section": "", "question_plain": "Eureka l\u00e0 m\u1ed9t c\u00f4ng ngh\u1ec7 ph\u00e1t tri\u1ec3n b\u1edfi c\u00f4ng ty n\u00e0o?", "related_lectures": []}, {"_class": "assessment", "id": 60840912, "assessment_type": "multiple-choice", "prompt": {"question": "<p>Discovery Client l\u00e0 g\u00ec trong ki\u1ebfn tr\u00fac d\u1ef1a tr\u00ean Eureka? </p>", "relatedLectureIds": ["37834480"], "feedbacks": ["", "Discovery Client l\u00e0 m\u1ed9t th\u01b0 vi\u1ec7n ho\u1eb7c module \u0111\u01b0\u1ee3c t\u00edch h\u1ee3p v\u00e0o c\u00e1c d\u1ecbch v\u1ee5 trong h\u1ec7 th\u1ed1ng \u0111\u1ec3 ch\u00fang c\u00f3 th\u1ec3 \u0111\u0103ng k\u00fd v\u1edbi Discovery Server (Eureka Server) v\u00e0 t\u00ecm ki\u1ebfm c\u00e1c d\u1ecbch v\u1ee5 kh\u00e1c trong m\u1ea1ng.", ""], "answers": ["<p>L\u00e0 m\u1ed9t d\u1ecbch v\u1ee5 ch\u1ea1y tr\u00ean Eureka Server \u0111\u1ec3 qu\u1ea3n l\u00fd c\u00e1c d\u1ecbch v\u1ee5 \u0111\u0103ng k\u00fd.</p>", "<p>L\u00e0 m\u1ed9t th\u01b0 vi\u1ec7n ho\u1eb7c module \u0111\u01b0\u1ee3c t\u00edch h\u1ee3p v\u00e0o c\u00e1c d\u1ecbch v\u1ee5 \u0111\u1ec3 \u0111\u0103ng k\u00fd v\u00e0 t\u00ecm ki\u1ebfm c\u00e1c d\u1ecbch v\u1ee5 kh\u00e1c.</p>", "<p>L\u00e0 m\u1ed9t giao di\u1ec7n ng\u01b0\u1eddi d\u00f9ng \u0111\u1ec3 t\u00ecm ki\u1ebfm v\u00e0 truy c\u1eadp c\u00e1c d\u1ecbch v\u1ee5 \u0111\u00e3 \u0111\u0103ng k\u00fd.</p>"]}, "correct_response": ["b"], "section": "", "question_plain": "Discovery Client l\u00e0 g\u00ec trong ki\u1ebfn tr\u00fac d\u1ef1a tr\u00ean Eureka?", "related_lectures": []}, {"_class": "assessment", "id": 60840928, "assessment_type": "multiple-choice", "prompt": {"question": "<p>C\u00e1ch ho\u1ea1t \u0111\u1ed9ng c\u1ee7a Eureka Server l\u00e0 g\u00ec? </p>", "relatedLectureIds": ["37834468"], "feedbacks": ["", "Eureka Server ho\u1ea1t \u0111\u1ed9ng b\u1eb1ng c\u00e1ch cho ph\u00e9p c\u00e1c d\u1ecbch v\u1ee5 \u0111\u0103ng k\u00fd th\u00f4ng tin c\u1ee7a m\u00ecnh v\u1edbi n\u00f3, bao g\u1ed3m \u0111\u1ecba ch\u1ec9 IP, c\u1ed5ng v\u00e0 t\u00ean d\u1ecbch v\u1ee5. C\u00e1c d\u1ecbch v\u1ee5 s\u1ebd c\u1eadp nh\u1eadt th\u00f4ng tin n\u00e0y v\u1edbi Eureka Server \u0111\u1ecbnh k\u1ef3 \u0111\u1ec3 th\u00f4ng b\u00e1o r\u1eb1ng ch\u00fang v\u1eabn ho\u1ea1t \u0111\u1ed9ng.", ""], "answers": ["<p>Eureka Server t\u1ef1 \u0111\u1ed9ng ph\u00e1t hi\u1ec7n c\u00e1c d\u1ecbch v\u1ee5 m\u1edbi v\u00e0 l\u01b0u tr\u1eef th\u00f4ng tin v\u1ec1 ch\u00fang.</p>", "<p>C\u00e1c d\u1ecbch v\u1ee5 \u0111\u0103ng k\u00fd th\u00f4ng tin c\u1ee7a m\u00ecnh v\u1edbi Eureka Server v\u00e0 c\u1eadp nh\u1eadt th\u01b0\u1eddng xuy\u00ean.</p>", "<p>Eureka Server s\u1eed d\u1ee5ng giao th\u1ee9c UDP \u0111\u1ec3 giao ti\u1ebfp v\u1edbi c\u00e1c Eureka Clients.</p>"]}, "correct_response": ["b"], "section": "", "question_plain": "C\u00e1ch ho\u1ea1t \u0111\u1ed9ng c\u1ee7a Eureka Server l\u00e0 g\u00ec?", "related_lectures": []}, {"_class": "assessment", "id": 60840938, "assessment_type": "multiple-choice", "prompt": {"question": "<p>Eureka Server h\u1ed7 tr\u1ee3 kh\u1ea3 n\u0103ng c\u00e2n b\u1eb1ng t\u1ea3i gi\u1eefa c\u00e1c phi\u00ean b\u1ea3n d\u1ecbch v\u1ee5 kh\u00e1c nhau kh\u00f4ng?</p>", "relatedLectureIds": ["37834468"], "feedbacks": ["Eureka Server c\u00f3 kh\u1ea3 n\u0103ng c\u00e2n b\u1eb1ng t\u1ea3i gi\u1eefa c\u00e1c phi\u00ean b\u1ea3n d\u1ecbch v\u1ee5 kh\u00e1c nhau \u0111\u1ec3 \u0111\u1ea3m b\u1ea3o r\u1eb1ng c\u00e1c y\u00eau c\u1ea7u \u0111\u01b0\u1ee3c ph\u00e2n ph\u1ed1i \u0111\u1ec1u v\u00e0 hi\u1ec7u su\u1ea5t h\u1ec7 th\u1ed1ng \u0111\u01b0\u1ee3c t\u1ed1i \u01b0u. \u0110i\u1ec1u n\u00e0y gi\u00fap \u0111\u1ea3m b\u1ea3o r\u1eb1ng m\u1ed9t phi\u00ean b\u1ea3n d\u1ecbch v\u1ee5 kh\u00f4ng qu\u00e1 t\u1ea3i trong khi c\u00e1c phi\u00ean b\u1ea3n kh\u00e1c c\u00f2n tr\u1ed1ng r\u1ed7ng.", ""], "answers": ["<p>C\u00f3, Eureka Server c\u00f3 th\u1ec3 c\u00e2n b\u1eb1ng t\u1ea3i gi\u1eefa c\u00e1c phi\u00ean b\u1ea3n d\u1ecbch v\u1ee5 \u0111\u1ec3 \u0111\u1ea3m b\u1ea3o hi\u1ec7u su\u1ea5t v\u00e0 s\u1eb5n s\u00e0ng cao.</p>", "<p>Kh\u00f4ng, Eureka Server kh\u00f4ng c\u00f3 kh\u1ea3 n\u0103ng c\u00e2n b\u1eb1ng t\u1ea3i.</p>"]}, "correct_response": ["a"], "section": "", "question_plain": "Eureka Server h\u1ed7 tr\u1ee3 kh\u1ea3 n\u0103ng c\u00e2n b\u1eb1ng t\u1ea3i gi\u1eefa c\u00e1c phi\u00ean b\u1ea3n d\u1ecbch v\u1ee5 kh\u00e1c nhau kh\u00f4ng?", "related_lectures": []}]};
+
+     let correct = new Set();
+    let incorrect = new Set();
+    let totalNumberOfQuestions = 0;
+    const quizTitle = quizData.quiz_title || "Quiz";
+    const quizDescription = quizData.quiz_description || "Please answer the questions below.";
+    const questionData = quizData.questions;
+    const passPercent = quizData.pass_percent;
+    const modalTextElement = document.getElementById("modal-text");
+    const quizContainerElement = document.getElementById("quiz-container");
+    const dialog = document.querySelector("dialog");
+    const closeButton = document.getElementById("close-modal-btn");
+    const quizTitleElement = document.getElementById("quiz-title");
+    const quizDescriptionElement = document.getElementById("quiz-description");
+
+    function main() {
+      // update quiz meta data
+      document.title = quizTitle;
+      quizTitleElement.innerHTML = quizTitle;
+      quizDescriptionElement.innerHTML = quizDescription;
+
+      const passPercentElement = document.getElementById("pass-percent");
+      passPercentElement.innerHTML = passPercent ? `${passPercent}%` : "N/A";
+      totalNumberOfQuestions = questionData.length;
+      
+      if(closeButton) {
+          closeButton.addEventListener("click", () => dialog.close());
+      }
+
+      // shuffle the questionData to randomize the order
+      for (let i = questionData.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [questionData[i], questionData[j]] = [questionData[j], questionData[i]];
+      }
+
+      let formattedQuestions = questionData.map(formatSingleQuestionData);
+      updateScore();
+      // display the formattedQuestions
+      formattedQuestions.forEach((question, idx) => {
+        renderSingleQuestion(question, idx + 1);
+      });
+    }
+
+    /**
+     * Formats the raw question data into a more usable structure.
+     */
+    function formatSingleQuestionData(singleQuizData = null) {
+        const { prompt, correct_response, id, assessment_type } = singleQuizData;
+        
+        const answers = prompt.answers || [];
+        // Create a detailed answer object including correctness
+        const formattedAnswers = answers.map((answerText, index) => {
+            const letter = String.fromCharCode(97 + index); // a, b, c...
+            const isCorrect = correct_response.includes(letter);
+            return {
+                text: answerText,
+                isCorrect: isCorrect
+            };
+        });
+
+        return {
+            id: id,
+            assessment_type: assessment_type,
+            question: prompt.question,
+            answers: formattedAnswers, // Use the new formatted answers
+            explanation: prompt?.explanation || "",
+            feedbacks: prompt.feedbacks
+        };
+    }
+
+    /**
+     * Renders a single question.
+     */
+    const renderSingleQuestion = (singleQuestionData = {}, rootIndex = 1) => {
+        const { id, explanation, answers, question, feedbacks, assessment_type } = singleQuestionData;
+
+        // shuffle the answers to randomize their order
+        // for (let i = answers.length - 1; i > 0; i--) {
+        //     const j = Math.floor(Math.random() * (i + 1));
+        //     [answers[i], answers[j]] = [answers[j], answers[i]];
+        // }
+        
+        const inputType = assessment_type === 'multi-select' ? 'checkbox' : 'radio';
+        const inputName = `answer_${id}`; // Unique name for each question group
+
+        const optionsHTML = answers
+            .map((option, index) => {
+                const optionId = `${id}_${index}`;
+                return `
+                <div class="question-lable">
+                    <input type="${inputType}" id="${optionId}" name="${inputName}" value="${option.text}" data-is-correct="${option.isCorrect}" />
+                    <label for="${optionId}">${option.text}</label>
+                </div>
+                `;
+            })
+            .join("");
+
+        const container = document.createElement("div");
+        container.innerHTML = `
+            <form data-question-id="${id}" class="single-question-container" onsubmit="submitButtonListener(event)">
+                <div style="display: flex;justify-content: space-between;">
+                    <p style="font-weight: 600">Question ${rootIndex}:</p>
+                    <button type="button" onclick="renderExplanation(event)" data-feedbacks='${JSON.stringify(feedbacks)}' data-explanation="${explanation}" class="explanation-btn">View Explanation</button>
+                </div>
+                <p style="margin-bottom: 8px;line-height: 1.5">${question}</p>
+                <div class="options-container">
+                    ${optionsHTML}
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button type="submit" class="button submit-btn">Submit</button>
+                </div>
+            </form>
+        `;
+        quizContainerElement.appendChild(container);
+    };
+
+    /**
+     * Updates the score board.
+     */
+    function updateScore() {
+        const currentPercentageElement = document.getElementById("current-score");
+        const correctAnswerElement = document.getElementById("correct-answers");
+        const wrongAnswerElement = document.getElementById("wrong-answers");
+        correctAnswerElement.innerHTML = correct.size;
+        wrongAnswerElement.innerHTML = incorrect.size;
+        if (totalNumberOfQuestions > 0) {
+            const score = Number((correct.size / totalNumberOfQuestions) * 100).toFixed(0);
+            currentPercentageElement.innerHTML = score;
+        }
+    }
+
+    /**
+    * Compares two sets for equality.
+    */
+    function setsAreEqual(setA, setB) {
+        if (setA.size !== setB.size) {
+            return false;
+        }
+        for (const item of setA) {
+            if (!setB.has(item)) {
+            return false;
+            }
+        }
+        return true;
+    }
+
+
+    /**
+     * Handles the form submission for a single question.
+     */
+    const submitButtonListener = (e) => {
+        e.preventDefault();
+        const form = e.target;
+        const questionId = form.dataset.questionId;
+        const inputs = form.querySelectorAll('input[type="radio"], input[type="checkbox"]');
+        
+        const userSelectedValues = new Set();
+        const actualCorrectValues = new Set();
+        let hasSelection = false;
+
+        inputs.forEach(input => {
+            if (input.checked) {
+                userSelectedValues.add(input.value);
+                hasSelection = true;
+            }
+            if (input.dataset.isCorrect === 'true') {
+                actualCorrectValues.add(input.value);
+            }
+        });
+
+        if (!hasSelection) {
+            alert("Please select an answer!");
+            return;
+        }
+
+        const isFullyCorrect = setsAreEqual(userSelectedValues, actualCorrectValues);
+
+        if (isFullyCorrect) {
+            correct.add(questionId);
+            incorrect.delete(questionId);
+        } else {
+            incorrect.add(questionId);
+            correct.delete(questionId);
+        }
+        
+        updateScore();
+
+        // Apply visual feedback and disable the form
+        form.querySelectorAll(".question-lable").forEach(labelContainer => {
+            const input = labelContainer.querySelector('input');
+            labelContainer.classList.remove("correct-answer", "incorrect-answer");
+
+            // Highlight all correct answers
+            if (input.dataset.isCorrect === 'true') {
+                labelContainer.classList.add("correct-answer");
+            } 
+            // Highlight user's incorrect selections
+            else if (input.checked && input.dataset.isCorrect === 'false') {
+                labelContainer.classList.add("incorrect-answer");
+            }
+        });
+
+      
+    };
+
+    /**
+     * Renders the explanation in a modal dialog.
+     */
+    function renderExplanation(ev) {
+        modalTextElement.innerHTML = '';
+        const explanation = ev.target.dataset?.explanation;
+        const feedbacksString = ev.target.dataset?.feedbacks;
+        let contentFound = false;
+
+        if (explanation && explanation.trim() !== "") {
+            modalTextElement.innerHTML += explanation;
+            contentFound = true;
+        }
+
+        if (feedbacksString) {
+            try {
+                const feedbacks = JSON.parse(feedbacksString);
+                feedbacks.forEach(feedback => {
+                    if (feedback && feedback.trim() !== "") {
+                        modalTextElement.innerHTML += feedback;
+                        contentFound = true;
+                    }
+                });
+            } catch (e) {
+                console.error("Error parsing feedbacks JSON:", e);
+            }
+        }
+
+        if (!contentFound) {
+            modalTextElement.innerHTML = "<p>No explanation found for this question.</p>";
+        }
+
+        dialog.showModal();
+        dialog.addEventListener("click", (event) => {
+            if (event.target === dialog) {
+                dialog.close();
+            }
+        });
+    }
+  </script>
+</body>
+
+</html>
