@@ -1,3 +1,13 @@
 spring:
   application:
     name: discoverserver
+server:
+  port: 8761
+eureka:
+  client:
+    register-with-eureka: false # false: bản thân nó đã là 1 server rồi không cần thiết đăng ký tới server nữa, true dành cho các service để dăng ký server này
+    fetch-registry: false # false: eureka không cần fetch phải lấy danh sách đã đăng ký eureka, các service đã đăng ký với nó đã có rồi
+logging:
+  level:
+    com.netflix.eureka: OFF
+    com.netflix.discovery: OFF
