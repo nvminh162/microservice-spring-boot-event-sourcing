@@ -5,14 +5,14 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>4.0.1</version>
+		<version>3.5.9</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.nvminh162</groupId>
 	<artifactId>discoverserver</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>discoverserver</name>
-	<description>Demo project for Spring Boot</description>
+	<description>Spring boot Microservice with nvminh162</description>
 	<url/>
 	<licenses>
 		<license/>
@@ -28,12 +28,12 @@
 	</scm>
 	<properties>
 		<java.version>25</java.version>
-		<spring-cloud.version>2025.1.0</spring-cloud.version>
+		<spring-cloud.version>2025.0.1</spring-cloud.version>
 	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webmvc</artifactId>
+			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
@@ -42,13 +42,7 @@
 
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
-			<optional>true</optional>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-webmvc-test</artifactId>
+			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
