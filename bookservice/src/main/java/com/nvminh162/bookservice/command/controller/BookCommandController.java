@@ -15,9 +15,8 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/books")
 @RequiredArgsConstructor
-@FieldDefaults(level = lombok.AccessLevel.PRIVATE, makeFinal = true)
 public class BookCommandController {
-    CommandGateway commandGateway; // Phát đi những Event
+    private final CommandGateway commandGateway; // Phát đi những Event
 
     @PostMapping
     public String createBook(@RequestBody BookRequestModel model) {
