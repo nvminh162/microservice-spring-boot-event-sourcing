@@ -1,9 +1,3 @@
-User: tôi chưa hiểu về cấu trúc luồng này
-
-giúp tôi giải thích
-
-GitHub Copilot: Tôi sẽ giải thích chi tiết về cấu trúc luồng CQRS (Command Query Responsibility Segregation) trong hình ảnh này:
-
 ## **Tổng Quan**
 CQRS tách biệt việc **ghi dữ liệu (Command)** và **đọc dữ liệu (Query)** thành 2 luồng độc lập.
 
